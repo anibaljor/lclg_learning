@@ -64,15 +64,28 @@ def run_example(
 ) -> dict:
     """Crea un agente con 3 tools y lo invoca; devuelve la respuesta y la traza de tool calls."""
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
+    # `tool(...)` convierte cada función Python en una Tool de LangChain: el
+    # nombre, los parámetros (por type hints) y la descripción (por el docstring)
+    # se extraen automáticamente. Esa descripción es lo único que el LLM ve para
+    # decidir cuándo y cómo llamar a cada una — por eso los docstrings de arriba
+    # están escritos pensando en el modelo, no solo en quien lea el código.
     tools = [tool(calculadora), tool(hora_actual), tool(buscar_en_lista_local)]
 
+    # A diferencia de las chains LCEL de los ejemplos 1-4 (orden fijo de pasos),
+    # acá NO decidimos nosotros qué se ejecuta: `create_agent` le da el control al
+    # LLM para que elija, en un loop interno, qué tool(s) llamar y cuándo parar.
     agent = create_agent(
         model=llm,
         tools=tools,
         system_prompt="Sos un asistente que responde en español y usa tools cuando hacen falta.",
     )
+    # La entrada/salida de un agente siempre es `{"messages": [...]}`, no un string
+    # suelto como en `chain.invoke(...)`. El resultado incluye TODOS los mensajes
+    # intermedios (incluidas las llamadas a tools), no solo la respuesta final.
     result = agent.invoke({"messages": [{"role": "user", "content": pregunta}]})
 
+    # Recorremos esos mensajes intermedios solo para mostrar en la UI qué tools
+    # se usaron y con qué argumentos — el agente ya terminó, esto es inspección.
     traza = [
         {"tool": tc["name"], "args": tc["args"]}
         for msg in result["messages"]

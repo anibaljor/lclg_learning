@@ -64,13 +64,23 @@ def run_example(
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
     documentos = _cargar_documentos()
 
+    # 1. Indexar: cada documento se convierte en un vector (embedding) y se guarda
+    # en FAISS, una estructura optimizada para buscar por similitud entre vectores.
     embeddings = EmbeddingsLocalesTfidf([d.page_content for d in documentos])
     vector_store = FAISS.from_documents(documentos, embeddings)
+    # `as_retriever` envuelve el vector store como un Runnable: `k` es cuántos
+    # documentos devolver por búsqueda (ajustable desde el slider de la UI).
     retriever = vector_store.as_retriever(search_kwargs={"k": k})
 
+    # 2. Recuperar: la pregunta también se convierte a vector y se buscan los `k`
+    # documentos más cercanos — esto es la "R" de RAG (Retrieval).
     docs_recuperados = retriever.invoke(pregunta)
     contexto = "\n\n".join(d.page_content for d in docs_recuperados)
 
+    # 3. Generar: misma chain LCEL de los ejemplos 2/4 (prompt | llm | parser),
+    # pero ahora el prompt recibe el `contexto` recuperado además de la pregunta
+    # — esto es la "AG" de RAG (Augmented Generation): el LLM responde con
+    # información que NO tenía de entrenamiento, solo la que le pasamos acá.
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "Respondé solo con información del contexto. Si no está ahí, decí que no lo sabés."),

@@ -60,6 +60,11 @@ class EstadoAgente(TypedDict):
 def construir_grafo(provider: str, api_key: str, model: str | None, temperature: float):
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
     tools = [tool(calculadora), tool(hora_actual)]
+    # `bind_tools` es la pieza de más bajo nivel que `create_agent` (ejemplo 5)
+    # usa por dentro: le informa al LLM qué tools existen (nombre, args,
+    # descripción) para que pueda PEDIR llamarlas, pero NO las ejecuta — eso lo
+    # hacemos a mano en `tool_node` más abajo. Es la diferencia entre "el LLM
+    # decide" y "alguien ejecuta lo decidido", que `create_agent` esconde.
     llm_con_tools = llm.bind_tools(tools)
     tools_por_nombre = {t.name: t for t in tools}
 

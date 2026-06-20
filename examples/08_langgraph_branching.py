@@ -82,6 +82,11 @@ def construir_grafo(provider: str, api_key: str, model: str | None, temperature:
     grafo.add_node("responder_generico", responder_generico)
 
     grafo.add_edge(START, "clasificar")
+    # A diferencia de `add_edge` (siempre va al mismo nodo siguiente, como en el
+    # ejemplo 7), `add_conditional_edges` conecta "clasificar" con LA FUNCIÓN
+    # `elegir_rama`: en cada ejecución, LangGraph la llama con el estado actual y
+    # salta al nodo cuyo nombre devolvió. Por eso las 3 ramas de abajo solo
+    # necesitan un edge fijo hacia END, no entre ellas.
     grafo.add_conditional_edges("clasificar", elegir_rama)
     grafo.add_edge("responder_saludo", END)
     grafo.add_edge("responder_tecnica", END)

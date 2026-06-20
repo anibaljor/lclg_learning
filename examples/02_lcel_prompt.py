@@ -29,6 +29,9 @@ def run_example(
     """Construye una chain LCEL prompt -> llm -> parser y la ejecuta."""
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
 
+    # ChatPromptTemplate reemplaza al SystemMessage/HumanMessage fijos del ejemplo
+    # 1 por una PLANTILLA con huecos (`{tema}`): se define una sola vez y se
+    # rellena en cada `.invoke()`, en vez de armar la lista de mensajes a mano.
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "Sos un divulgador que explica temas técnicos de forma simple."),
@@ -36,7 +39,10 @@ def run_example(
         ]
     )
 
-    # El operador `|` compone Runnables: la salida de cada paso es la entrada del siguiente.
+    # El operador `|` compone Runnables: la salida de cada paso es la entrada del
+    # siguiente. `prompt` rellena la plantilla -> `llm` la invoca -> StrOutputParser()
+    # se queda con el `.content` del AIMessage (el mismo dato que devolvíamos a
+    # mano en el ejemplo 1, ahora como un paso explícito y reutilizable de la chain).
     chain = prompt | llm | StrOutputParser()
     return chain.invoke({"tema": tema})
 

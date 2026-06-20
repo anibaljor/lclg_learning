@@ -38,7 +38,13 @@ def construir_grafo(provider: str, api_key: str, model: str | None, temperature:
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
 
     def generar_idea(estado: EstadoIdea) -> dict:
-        """Nodo 1: a partir de `tema`, propone una idea breve."""
+        """Nodo 1: a partir de `tema`, propone una idea breve.
+
+        Un nodo recibe el estado COMPLETO pero devuelve solo los campos que
+        cambia (acá, `idea`); LangGraph mergea ese dict parcial sobre el estado
+        antes de pasarlo al siguiente nodo. Por eso `mejorar_idea` ya puede leer
+        `estado["idea"]` aunque este nodo nunca tocó `idea_mejorada`.
+        """
         respuesta = llm.invoke(
             f"Proponé una idea breve (1 oración) sobre '{estado['tema']}'. Solo la idea, sin introducción."
         )
@@ -51,6 +57,9 @@ def construir_grafo(provider: str, api_key: str, model: str | None, temperature:
         )
         return {"idea_mejorada": respuesta.content}
 
+    # Armar el grafo es: registrar nodos (funciones) y después conectarlos con
+    # edges (aristas) que dicen el orden de ejecución. `START`/`END` son nodos
+    # especiales fijos que marcan el inicio y el fin del recorrido.
     grafo = StateGraph(EstadoIdea)
     grafo.add_node("generar_idea", generar_idea)
     grafo.add_node("mejorar_idea", mejorar_idea)
@@ -58,6 +67,8 @@ def construir_grafo(provider: str, api_key: str, model: str | None, temperature:
     grafo.add_edge("generar_idea", "mejorar_idea")
     grafo.add_edge("mejorar_idea", END)
 
+    # `.compile()` valida el grafo (nodos/edges consistentes) y devuelve un
+    # Runnable ejecutable: se invoca igual que una chain LCEL, con `.invoke(...)`.
     return grafo.compile()
 
 

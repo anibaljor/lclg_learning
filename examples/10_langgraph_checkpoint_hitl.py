@@ -51,6 +51,13 @@ def construir_grafo(provider: str, api_key: str, model: str | None, temperature:
         Si `decision` viene "si"/"sí"/"ok" se usa el borrador tal cual; cualquier
         otro texto se interpreta como una corrección del humano y se usa en su lugar.
         """
+        # `interrupt(payload)` congela la ejecución ACÁ MISMO la primera vez que
+        # se llama (en `iniciar`): el grafo devuelve el control a Python sin
+        # terminar, llevándose `payload` consigo. Cuando después se resume con
+        # `Command(resume=decision_humana)` (en `resumir`), este nodo se vuelve a
+        # ejecutar desde el principio, pero esta vez `interrupt(...)` no pausa:
+        # directamente "devuelve" `decision_humana`, como si fuera el valor de
+        # retorno de una función que ya respondió.
         decision = interrupt({"borrador": estado["borrador"]})
         aprobado = str(decision).strip().lower() in ("si", "sí", "yes", "ok", "true")
         mensaje_final = estado["borrador"] if aprobado else str(decision)
@@ -63,6 +70,10 @@ def construir_grafo(provider: str, api_key: str, model: str | None, temperature:
     grafo.add_edge("generar_borrador", "pedir_aprobacion")
     grafo.add_edge("pedir_aprobacion", END)
 
+    # Pasar `checkpointer` a `.compile()` es lo que habilita pausar/resumir: en
+    # cada paso, LangGraph guarda ahí el estado completo asociado al
+    # `thread_id` de la llamada. Sin esto, `interrupt()` no tendría dónde
+    # persistir el estado entre la llamada que pausa y la que resume.
     return grafo.compile(checkpointer=checkpointer)
 
 

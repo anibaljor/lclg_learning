@@ -27,10 +27,16 @@ def run_example(
     """Invoca un chat model con un mensaje de sistema + un mensaje humano."""
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
 
+    # Una conversación es una lista de mensajes con rol: SystemMessage fija el
+    # comportamiento general (no lo escribe el usuario), HumanMessage es el turno
+    # del usuario. Para un chat de varios turnos, se agregarían más mensajes acá
+    # (alternando Human/AIMessage) antes de volver a invocar.
     messages = [
         SystemMessage("Sos un asistente conciso. Respondé siempre en español, en máximo 3 oraciones."),
         HumanMessage(user_message),
     ]
+    # .invoke() manda los mensajes al proveedor y espera la respuesta completa
+    # (sin streaming). Devuelve un AIMessage; su texto vive en `.content`.
     response = llm.invoke(messages)
     return response.content
 

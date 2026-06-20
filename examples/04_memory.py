@@ -33,6 +33,9 @@ def run_example(
     """Invoca una chain con memoria; `store` persiste el historial entre llamadas."""
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
 
+    # Misma chain LCEL del ejemplo 2 (prompt | llm | parser), con un agregado
+    # clave: `MessagesPlaceholder("history")` reserva un lugar en la plantilla
+    # donde se van a inyectar los mensajes previos, ANTES del mensaje nuevo.
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "Sos un asistente conciso. Usá lo que el usuario ya te contó en esta charla."),
@@ -42,11 +45,18 @@ def run_example(
     )
     chain = prompt | llm | StrOutputParser()
 
+    # Esta función es el "backend" del historial: dado un `session_id`, devuelve
+    # SIEMPRE el mismo objeto de historial para esa sesión (lo crea si no existe).
+    # `RunnableWithMessageHistory` la llama solo, vos nunca la invocás directo.
     def get_session_history(sid: str) -> InMemoryChatMessageHistory:
         if sid not in store:
             store[sid] = InMemoryChatMessageHistory()
         return store[sid]
 
+    # El wrapper: antes de invocar la chain, lee el historial de la sesión y lo
+    # mete en el placeholder "history"; después de invocar, agrega el mensaje del
+    # usuario y la respuesta del modelo a ese mismo historial. Por eso la próxima
+    # llamada con el mismo `session_id` "se acuerda" de esta.
     chain_with_history = RunnableWithMessageHistory(
         chain,
         get_session_history,

@@ -18,7 +18,13 @@ from llm_factory import get_llm  # noqa: E402
 
 
 class RecetaInfo(BaseModel):
-    """Información estructurada extraída de la descripción de una receta."""
+    """Información estructurada extraída de la descripción de una receta.
+
+    El `description` de cada `Field` no es decoración: es el texto que el
+    proveedor recibe para saber qué poner en cada campo (parecido al docstring
+    de una tool en el ejemplo 5). Un schema con buenas descripciones es lo que
+    hace que la extracción sea confiable.
+    """
 
     nombre_plato: str = Field(description="Nombre del plato")
     ingredientes: list[str] = Field(description="Lista de ingredientes principales")
@@ -35,6 +41,10 @@ def run_example(
 ) -> RecetaInfo:
     """Extrae datos estructurados de una receta en texto libre, validados con Pydantic."""
     llm = get_llm(provider, api_key, model=model, temperature=temperature)
+    # `with_structured_output` envuelve el chat model para que, en vez de
+    # devolver texto libre (como en los ejemplos 1 y 2), devuelva directamente
+    # una instancia de `RecetaInfo` ya validada. Sin esto habría que pedirle al
+    # LLM "respondé en JSON" y parsear/validar esa respuesta a mano.
     structured_llm = llm.with_structured_output(RecetaInfo)
     return structured_llm.invoke(descripcion_receta)
 
