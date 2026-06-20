@@ -1,0 +1,25 @@
+# Versiones fijadas y validadas con un `pip install` limpio + chequeo de imports
+# antes de escribir el código de la app (ver README para el detalle del proceso).
+streamlit==1.58.0
+
+langchain==1.3.10
+langchain-core==1.4.8
+langgraph==1.2.6
+
+langchain-openai==1.3.2
+langchain-anthropic==1.4.6
+langchain-google-genai==4.2.5
+
+# Sin esto no hay integración funcional de FAISS para LangChain: el paquete
+# standalone "langchain-faiss" en PyPI está vacío (sin código real), así que se
+# usa la integración de langchain-community, que sigue funcionando pese al aviso
+# de deprecación del paquete en general.
+langchain-community==0.4.2
+faiss-cpu==1.14.3
+
+# Embeddings locales (TF-IDF) para el ejemplo de RAG: gratis, sin red, y válidos
+# para los 3 proveedores (Anthropic no tiene API de embeddings).
+scikit-learn==1.9.0
+
+pydantic==2.13.4
+numpy==2.4.6

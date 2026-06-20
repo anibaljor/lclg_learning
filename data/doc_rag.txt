@@ -1,0 +1,11 @@
+RAG (Retrieval-Augmented Generation, o "generación aumentada por
+recuperación") es una técnica que combina un buscador de documentos con un
+modelo de lenguaje. Primero se indexan documentos como vectores numéricos
+(embeddings) en una base vectorial, por ejemplo FAISS. Cuando llega una
+pregunta, se la convierte también en un vector y se buscan los documentos
+más similares (los "vecinos más cercanos"). Esos documentos recuperados se
+insertan como contexto en el prompt que recibe el modelo, que entonces puede
+responder usando información específica que no estaba en su entrenamiento
+original, y citar de dónde la sacó. RAG es útil para responder preguntas
+sobre documentos propios, privados o muy recientes, sin tener que
+reentrenar el modelo.

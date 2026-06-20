@@ -1,0 +1,10 @@
+LangChain es un framework de Python (y TypeScript) para construir aplicaciones
+sobre modelos de lenguaje (LLMs). Su pieza central es LCEL (LangChain
+Expression Language): un operador "|" que permite encadenar componentes
+(prompts, modelos, parsers, retrievers) en una "chain" lineal, donde la
+salida de un paso es la entrada del siguiente. LangChain también ofrece
+abstracciones para tools (funciones que un modelo puede invocar), agentes
+(modelos que decian qué tool usar y cuándo) y memoria de conversación.
+LangChain conviene cuando el flujo de trabajo es esencialmente lineal: una
+secuencia fija de pasos que siempre se ejecutan en el mismo orden, sin
+necesidad de ciclos ni de bifurcaciones complejas según el estado acumulado.

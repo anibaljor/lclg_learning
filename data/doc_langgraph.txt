@@ -1,0 +1,12 @@
+LangGraph es una librería para construir aplicaciones con LLMs modeladas como
+grafos con estado. A diferencia de una chain lineal de LangChain, un grafo de
+LangGraph define nodos (funciones que reciben y devuelven un estado tipado,
+por ejemplo con TypedDict) y edges (conexiones entre nodos), incluyendo edges
+condicionales que eligen el siguiente nodo según el contenido del estado.
+Esto permite ciclos (volver a un nodo ya visitado, como en un agente que
+piensa-actúa-observa repetidamente) y branching (bifurcar la ejecución según
+una condición). LangGraph también incluye checkpointers para persistir el
+estado entre llamadas, lo que habilita memoria de largo plazo y flujos de
+"human-in-the-loop" donde la ejecución se pausa esperando una decisión
+humana. LangGraph conviene cuando el flujo necesita estado compartido entre
+pasos, ciclos, bifurcaciones según condiciones dinámicas, o persistencia.
