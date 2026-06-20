@@ -28,3 +28,8 @@ env/
 
 # Bundles de git generados localmente
 *.bundle
+
+# Skills descargados como .zip: el contenido ya vive descomprimido en .claude/skills/
+*.skill
+
+chat.md
